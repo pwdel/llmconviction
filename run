@@ -1,0 +1,66 @@
+#!/bin/bash
+# Main script to orchestrate build, start, stop, and kill operations
+
+set -e  # Exit on any error
+
+# Function to display help
+display_help() {
+    echo "Usage: $0 {start|stop|kill|bash} [-h|--help]"
+    echo ""
+    echo "Commands:"
+    echo "  start   Build and start the containerized service, and log into it"
+    echo "  stop    Stop the GPU service on DigitalOcean"
+    echo "  kill    Kill the service, stop the container, and clean up"
+    echo "  bash    Access the running container"
+    echo ""
+    echo "Options:"
+    echo "  -h, --help  Display this help message"
+    exit 0
+}
+
+# Check if no arguments or help flag is provided
+if [ -z "$1" ] || [[ "$1" == "-h" || "$1" == "--help" ]]; then
+    display_help
+fi
+
+COMMAND=$1
+CONTAINER_NAME="local-llm-conviction-bot"
+KEYS_DIR="./app/keys"
+
+# Ensure keys directory exists
+if [ ! -d "$KEYS_DIR" ]; then
+    echo "Keys directory '$KEYS_DIR' does not exist. Create it and add your keys." >&2
+    exit 1
+fi
+
+# Ensure Docker Compose v2 is available
+if ! command -v docker compose &> /dev/null; then
+    echo "Docker Compose (v2) could not be found. Please install it and try again." >&2
+    exit 1
+fi
+
+case "$COMMAND" in
+    start)
+        echo "Starting the service..."
+        ./scripts/build
+        docker compose up -d
+        echo "Container is up and running."
+        echo "Logging into the container..."
+        docker exec -it "$CONTAINER_NAME" bash
+        ;;
+    kill)
+        echo "Killing the service and cleaning up..."
+        "$0" stop
+        docker compose down
+        echo "Local container stopped and removed."
+        ;;
+    bash)
+        echo "Accessing the running container..."
+        docker exec -it "$CONTAINER_NAME" bash
+        ;;
+    *)
+        echo "Invalid command: $COMMAND"
+        echo "Usage: $0 {start|stop|kill|bash} [-h|--help]"
+        exit 1
+        ;;
+esac

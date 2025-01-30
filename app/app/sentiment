@@ -1,0 +1,100 @@
+#!/usr/local/bin/python
+
+import google.generativeai as genai
+import argparse
+import sys
+import csv
+import json
+
+# Define the path to the API key file
+KEY_FILE_PATH = "../keys/google_ai_studio"
+
+# Read the API key from the file
+try:
+    with open(KEY_FILE_PATH, "r") as key_file:
+        api_key = key_file.read().strip()
+except FileNotFoundError:
+    print(f"Error: API key file not found at {KEY_FILE_PATH}", file=sys.stderr)
+    sys.exit(1)
+
+# Configure the generative AI model with the API key
+genai.configure(api_key=api_key)
+
+# Initialize the Gemini model
+model = genai.GenerativeModel("gemini-1.5-flash")
+
+def load_news_headlines(file_path):
+    """Load headlines from a CSV file."""
+    headlines = []
+    try:
+        with open(file_path, mode="r", encoding="utf-8") as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                if "Title" in row:
+                    headlines.append(row["Title"])
+    except FileNotFoundError:
+        print(f"Error: File '{file_path}' not found.", file=sys.stderr)
+        sys.exit(1)
+
+    return headlines
+
+def analyze_sentiment(topic, headlines):
+    """Analyze sentiment using Gemini AI based on the given topic and headlines."""
+
+    prompt = f"""
+    You are an expert sentiment analyst who responds in JSON FORMAT ONLY.
+    You will assess the sentiment of recent news articles related to the topic '{topic}'.
+
+    The JSON format of your response will look like this:  [ "assessment": X.XX, "conviction": Y.YY ] with X and Y being numbers and [] being curly braces.
+    Respond with this format only. Do not include tickmarks or the term, json, just the object itself.
+
+    Here are the headlines:
+    {headlines}
+
+    Based on these headlines below, think, in a chain of thought manner:
+    - A sentiment analysis of the general tone (positive, negative, or neutral).
+    - Any relevant insights you find.
+    - The numerical sentiment score is between 0.00 (very negative) to 1.00 (very positive) and a conviction score between 0.00 (uncertain) to 1.00 (very certain).
+    Respond in a JSON Format only, with two values, one key/value for assessment, and one key/value for conviction level of that assessment.
+
+
+    The JSON format of your response will look like this:  [ "assessment": X.XX, "conviction": Y.YY ] with X and Y being numbers and [] being curly braces.
+    Respond with this format only. Do not include tickmarks or the term, json, just the object itself.
+
+    """
+
+    response = model.generate_content(prompt)
+
+    if hasattr(response, "text"):
+        return response.text
+    else:
+        print("Error: No text response received from the model.", file=sys.stderr)
+        sys.exit(1)
+
+def main():
+    """Main function to parse arguments and run sentiment analysis."""
+    parser = argparse.ArgumentParser(description="Assess sentiment of news headlines on a given topic.")
+    parser.add_argument("--topic", type=str, required=True, help="The topic to analyze sentiment for.")
+    parser.add_argument("--file", type=str, required=True, help="The CSV file containing news headlines.")
+    parser.add_argument("--output", type=str, default="sentiment_result.txt", help="Output filename (default: sentiment_result.txt)")
+
+    args = parser.parse_args()
+
+    # Load headlines
+    headlines = load_news_headlines(args.file)
+
+    if not headlines:
+        print("Error: No headlines found in the provided file.", file=sys.stderr)
+        sys.exit(1)
+
+    # Analyze sentiment
+    sentiment_result = analyze_sentiment(args.topic, headlines)
+
+    # Save to output file
+    with open(args.output, "w", encoding="utf-8") as output_file:
+        output_file.write(sentiment_result)
+
+    print(f"Sentiment analysis saved: {args.output}")
+
+if __name__ == "__main__":
+    main()

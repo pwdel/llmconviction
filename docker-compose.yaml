@@ -1,0 +1,10 @@
+services:
+  local-conviction-bot:
+    image: local-llm-conviction-bot
+    container_name: local-llm-conviction-bot
+    volumes:
+      - ./app/keys:/app/keys:ro       # Mount keys directory as read-only
+      - ./app/app:/app/app
+    tty: true
+    environment:
+      - KEYS_DIR=/app/keys
