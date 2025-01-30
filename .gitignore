@@ -1,0 +1,4 @@
+# Ignore keys directory
+keys/
+# Mac stuff
+.DS_Store
