@@ -23,6 +23,7 @@ genai.configure(api_key=api_key)
 # Initialize the Gemini model
 model = genai.GenerativeModel("gemini-1.5-flash")
 
+
 def load_news_headlines(file_path):
     """Load headlines from a CSV file."""
     headlines = []
@@ -37,6 +38,7 @@ def load_news_headlines(file_path):
         sys.exit(1)
 
     return headlines
+
 
 def analyze_sentiment(topic, headlines):
     """Analyze sentiment using Gemini AI based on the given topic and headlines."""
@@ -71,6 +73,7 @@ def analyze_sentiment(topic, headlines):
         print("Error: No text response received from the model.", file=sys.stderr)
         sys.exit(1)
 
+
 def main():
     """Main function to parse arguments and run sentiment analysis."""
     parser = argparse.ArgumentParser(description="Assess sentiment of news headlines on a given topic.")
@@ -95,6 +98,7 @@ def main():
         output_file.write(sentiment_result)
 
     print(f"Sentiment analysis saved: {args.output}")
+
 
 if __name__ == "__main__":
     main()
