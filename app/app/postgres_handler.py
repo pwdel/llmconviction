@@ -1,6 +1,7 @@
+#!/usr/local/bin/python
+
 import psycopg2
 from psycopg2 import sql
-
 
 class PostgresHandler:
     def __init__(self, host="postgres", port=5432, dbname="newsdb", user="youruser", password="yourpassword"):
@@ -57,3 +58,21 @@ class PostgresHandler:
         if self.conn:
             self.conn.close()
             print("Closed the database connection.")
+
+# Simple test routine to verify the connection
+if __name__ == "__main__":
+    try:
+        # Use default connection parameters or override with your own values
+        handler = PostgresHandler(
+            host="postgres",   # or "localhost" if testing locally
+            port=5432,
+            dbname="newsdb",
+            user="youruser",
+            password="yourpassword"
+        )
+        print("Connection to Postgres established and table ensured.")
+    except Exception as e:
+        print("Test failed:", e)
+    finally:
+        if 'handler' in locals():
+            handler.close()
