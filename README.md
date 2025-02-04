@@ -2,7 +2,7 @@
 
 # Test Out a Bot Designed
 
-Test out a bot designed to use LLM's to classify sentiment and conviction level.
+Test out a bot designed to use LLM's to classify sentiment and conviction level so that we can experiment with conformal prediction.
 
 ## Start Up and Shut Down Remote GPU Virtual Private Server
 

@@ -1,7 +1,0 @@
-#!/usr/local/bin/python
-
-# all of this could be replaced by a postgres database in the future, however then we need backups
-# concatenates news_result csv's from a range of files given a topic and date range
-# deduplicates by datetimestamp and headline
-# orders final result by date
-# given a date range, returns a split of deduplicated, ordred headlines by date

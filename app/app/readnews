@@ -9,6 +9,7 @@ from postgres_handler import PostgresHandler
 
 RSS_URL_TEMPLATE = "https://news.google.com/rss/search?q={query}&ceid=US:en&hl=en-US&gl=US"
 
+
 def fetch_rss_feed(search_term):
     """Fetch the RSS feed from Google News for the given search term."""
     url = RSS_URL_TEMPLATE.format(query=search_term)
@@ -51,30 +52,15 @@ def main():
         description="Fetch Google News RSS feed and save headlines to Postgres."
     )
     parser.add_argument("search_term", type=str, help="Search term for Google News RSS")
-    parser.add_argument("--dbhost", type=str, default="postgres", help="Database host (default: postgres)")
-    parser.add_argument("--dbport", type=int, default=5432, help="Database port (default: 5432)")
-    parser.add_argument("--dbname", type=str, default="newsdb", help="Database name (default: newsdb)")
-    parser.add_argument("--dbuser", type=str, default="youruser", help="Database user (default: youruser)")
-    parser.add_argument("--dbpassword", type=str, default="yourpassword", help="Database password (default: yourpassword)")
     args = parser.parse_args()
 
-    # Create an instance of PostgresHandler with the provided DB configuration
-    db_handler = PostgresHandler(
-        host=args.dbhost,
-        port=args.dbport,
-        dbname=args.dbname,
-        user=args.dbuser,
-        password=args.dbpassword
-    )
+    db_handler = PostgresHandler()
 
-    # Fetch and parse news items
     xml_data = fetch_rss_feed(args.search_term)
     news_items = parse_rss_feed(xml_data)
 
-    # Insert news items into the database
     db_handler.insert_news_items(news_items)
 
-    # Clean up by closing the connection
     db_handler.close()
 
 

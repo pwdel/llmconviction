@@ -20,12 +20,13 @@ class PostgresHandler:
         try:
             self.conn = psycopg2.connect(**self.config)
             self.conn.autocommit = True
-            self.create_table()  # Ensure table exists when we connect
+            self.create_news_table()
+            self.create_sentiment_table()
         except Exception as e:
             print(f"Error connecting to Postgres: {e}")
             raise
 
-    def create_table(self):
+    def create_news_table(self):
         """Create the news table if it doesn't already exist."""
         with self.conn.cursor() as cur:
             cur.execute("""
@@ -37,6 +38,46 @@ class PostgresHandler:
                 )
             """)
             print("Ensured that the 'news' table exists.")
+
+    def create_sentiment_table(self):
+        """Create the sentiment_results table if it doesn't already exist."""
+        with self.conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS sentiment_results (
+                    id SERIAL PRIMARY KEY,
+                    sentiment JSON NOT NULL,
+                    inserted_at TIMESTAMPTZ DEFAULT NOW(),
+                    identifier TEXT
+                )
+            """)
+            print("Ensured that the 'sentiment_results' table exists.")
+
+    def fetch_news_headlines(self):
+        """Fetch all news headlines from the database."""
+        with self.conn.cursor() as cur:
+            cur.execute("SELECT title FROM news ORDER BY id;")
+            records = cur.fetchall()
+        return [record[0] for record in records]
+
+    def fetch_sentiment_results(self, identifier_filter):
+        """
+        Fetch sentiment results that match the given identifier filter.
+
+        Parameters:
+            identifier_filter (str): A string to filter the identifier column (using a case-insensitive match).
+
+        Returns:
+            list of tuple: Each tuple represents a row in the sentiment_results table.
+        """
+        with self.conn.cursor() as cur:
+            query = """
+                SELECT id, sentiment, inserted_at, identifier
+                FROM sentiment_results
+                WHERE identifier ILIKE %s
+                ORDER BY inserted_at DESC;
+            """
+            cur.execute(query, (f"%{identifier_filter}%",))
+            return cur.fetchall()
 
     def insert_news_items(self, news_items):
         """
@@ -52,6 +93,22 @@ class PostgresHandler:
             """)
             cur.executemany(insert_query, news_items)
             print(f"Inserted {len(news_items)} news items into the database.")
+
+    def insert_sentiment_result(self, sentiment_json, identifier=None):
+        """
+        Insert a sentiment result into the sentiment_results table.
+
+        Parameters:
+            sentiment_json (dict or str): A JSON object (or string) representing the sentiment analysis result.
+            identifier (str): Optional text identifier to label the result.
+        """
+        with self.conn.cursor() as cur:
+            insert_query = sql.SQL("""
+                INSERT INTO sentiment_results (sentiment, identifier)
+                VALUES (%s, %s)
+            """)
+            cur.execute(insert_query, (sentiment_json, identifier))
+            print("Inserted sentiment result into the database.")
 
     def close(self):
         """Close the database connection."""
