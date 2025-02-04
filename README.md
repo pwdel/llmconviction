@@ -1,12 +1,12 @@
 # llmconviction
 
-# Test Out a Bot Designed
+# Conformal Learning Bot Based Upon LLM Output
 
 Test out a bot designed to use LLM's to classify sentiment and conviction level so that we can experiment with conformal prediction.
 
-## Start Up and Shut Down Remote GPU Virtual Private Server
+## QuickStart
 
-### Quickstart - Testing Out a CPU Instance Launch
+### Quickstart - Testing Out an LLM Value and Conviction Object Generation
 
 * This quickstart assumes a reasonably updated MacOS or Linux Machine with`docker` as well as `docker compose` installed. Ensure you are using `docker compose` and not the deprecated `docker-compose`.
 
