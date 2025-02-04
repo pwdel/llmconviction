@@ -1,12 +1,12 @@
 # llmconviction
 
-# Test Out a Bot Designed
+# Conformal Learning Bot Based Upon LLM Output
 
-Test out a bot designed to use LLM's to classify sentiment and conviction level.
+Test out a bot designed to use LLM's to classify sentiment and conviction level so that we can experiment with conformal prediction.
 
-## Start Up and Shut Down Remote GPU Virtual Private Server
+## QuickStart
 
-### Quickstart - Testing Out a CPU Instance Launch
+### Quickstart - Testing Out an LLM Value and Conviction Object Generation
 
 * This quickstart assumes a reasonably updated MacOS or Linux Machine with`docker` as well as `docker compose` installed. Ensure you are using `docker compose` and not the deprecated `docker-compose`.
 
@@ -21,3 +21,4 @@ Test out a bot designed to use LLM's to classify sentiment and conviction level.
 * `./app/test [QUERY]` will generate a response from an input query.
 * `./app/readnews --output [FILE] [TOPIC]` will read news about "TOPIC" to the file "OUTPUT" with the default being `news_result.csv`
 * `./app/sentiment --topic [TOPIC] --file [FILE] --output [OUTPUT]` gives a `json` formatted output sentiment and conviction level on a particular topic found in a particular file, based upon `gemini-1.5-flash`.
+* For example: `./app/sentiment --topic "nvidia" --file "exported_news.csv" --output "sentiment_result_20250202"`

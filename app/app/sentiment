@@ -4,7 +4,8 @@ import google.generativeai as genai
 import argparse
 import sys
 import csv
-import json
+from datetime import datetime
+from postgres_handler import PostgresHandler
 
 # Define the path to the API key file
 KEY_FILE_PATH = "../keys/google_ai_studio"
@@ -78,26 +79,26 @@ def main():
     """Main function to parse arguments and run sentiment analysis."""
     parser = argparse.ArgumentParser(description="Assess sentiment of news headlines on a given topic.")
     parser.add_argument("--topic", type=str, required=True, help="The topic to analyze sentiment for.")
-    parser.add_argument("--file", type=str, required=True, help="The CSV file containing news headlines.")
     parser.add_argument("--output", type=str, default="sentiment_result.txt", help="Output filename (default: sentiment_result.txt)")
 
     args = parser.parse_args()
 
-    # Load headlines
-    headlines = load_news_headlines(args.file)
+    db_handler = PostgresHandler()
 
+    headlines = db_handler.fetch_news_headlines()
     if not headlines:
-        print("Error: No headlines found in the provided file.", file=sys.stderr)
+        print("Error: No headlines found in the database.", file=sys.stderr)
+        db_handler.close()
         sys.exit(1)
 
-    # Analyze sentiment
     sentiment_result = analyze_sentiment(args.topic, headlines)
 
-    # Save to output file
-    with open(args.output, "w", encoding="utf-8") as output_file:
-        output_file.write(sentiment_result)
+    # Generate an identifier using the topic and the current datetime.
+    identifier = f"{args.topic}-analysis-{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
+    db_handler.insert_sentiment_result(sentiment_result, identifier=identifier)
 
-    print(f"Sentiment analysis saved: {args.output}")
+    print(f"Sentiment analysis saved with identifier: {identifier}")
+    db_handler.close()
 
 
 if __name__ == "__main__":
