@@ -1,0 +1,40 @@
+#!/usr/local/bin/python
+
+import argparse
+import sys
+from datetime import datetime
+from postgres_handler import PostgresHandler
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Display news headlines stored in the database, optionally filtered by a topic and date.")
+    parser.add_argument("--topic", type=str, help="Optional topic keyword to filter headlines.")
+    parser.add_argument("--date", type=str, help="Optional date to filter headlines (format YYYY-MM-DD).")
+    args = parser.parse_args()
+
+    db_handler = PostgresHandler()
+
+    # Convert string date to date object if present
+    date = None
+    if args.date:
+        try:
+            date = datetime.strptime(args.date, "%Y-%m-%d").date()
+        except ValueError:
+            print(f"Error: The date format should be YYYY-MM-DD", file=sys.stderr)
+            sys.exit(1)
+
+    headlines = db_handler.fetch_news_headlines(topic=args.topic, pub_date=date)
+
+    if not headlines:
+        print("No news headlines found in the database matching the filter.", file=sys.stderr)
+    else:
+        print("News Headlines:")
+        for headline in headlines:
+            print(headline)
+
+    db_handler.close()
+
+
+if __name__ == "__main__":
+    main()

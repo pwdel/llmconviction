@@ -1,6 +1,7 @@
 #!/usr/local/bin/python
 
 import argparse
+import datetime
 import requests
 import csv
 import sys
@@ -22,6 +23,16 @@ def fetch_rss_feed(search_term):
     return response.content
 
 
+def parse_pub_date(pub_date_str):
+    """Converts a publication date string to a datetime object."""
+    if pub_date_str:
+        try:
+            return datetime.datetime.strptime(pub_date_str, '%a, %d %b %Y %H:%M:%S %Z')
+        except ValueError as e:
+            print(f"Error parsing date '{pub_date_str}': {e}")
+    return None
+
+
 def parse_rss_feed(xml_data):
     """Parse the RSS XML and extract headlines, publication dates, and sources."""
     root = ET.fromstring(xml_data)
@@ -29,8 +40,11 @@ def parse_rss_feed(xml_data):
 
     for item in root.findall(".//item"):
         title = item.find("title").text if item.find("title") is not None else "No Title"
-        pub_date = item.find("pubDate").text if item.find("pubDate") is not None else "No Date"
+        pub_date_str = item.find("pubDate").text if item.find("pubDate") is not None else None
         source = item.find("source").text if item.find("source") is not None else "Unknown Source"
+
+        # Use the separate function to parse the publication date
+        pub_date = parse_pub_date(pub_date_str)
 
         news_items.append((title, pub_date, source))
 

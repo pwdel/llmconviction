@@ -1,0 +1,28 @@
+#!/usr/local/bin/python
+
+import psycopg2
+from postgres_handler import PostgresHandler
+
+
+def migrate_pub_date():
+    handler = PostgresHandler()
+    try:
+        with handler.conn.cursor() as cur:
+            # First, remove quotes if they exist around the date string
+            cur.execute("""
+                UPDATE news SET pub_date = TRIM(BOTH '"' FROM pub_date);
+            """)
+            # Alter the column type to TIMESTAMPTZ using a conversion
+            cur.execute("""
+                ALTER TABLE news
+                ALTER COLUMN pub_date TYPE TIMESTAMPTZ USING to_timestamp(pub_date, 'Dy, DD Mon YYYY HH24:MI:SS "GMT"');
+            """)
+            print("Migrated pub_date column from TEXT to TIMESTAMPTZ.")
+    except psycopg2.Error as e:
+        print(f"An error occurred during the migration: {e}")
+    finally:
+        handler.close()
+
+
+if __name__ == "__main__":
+    migrate_pub_date()

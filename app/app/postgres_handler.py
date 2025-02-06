@@ -3,6 +3,7 @@
 import psycopg2
 from psycopg2 import sql
 
+
 class PostgresHandler:
     def __init__(self, host="postgres", port=5432, dbname="newsdb", user="youruser", password="yourpassword"):
         self.config = {
@@ -33,7 +34,7 @@ class PostgresHandler:
                 CREATE TABLE IF NOT EXISTS news (
                     id SERIAL PRIMARY KEY,
                     title TEXT NOT NULL,
-                    pub_date TEXT,
+                    pub_date TIMESTAMPTZ,
                     source TEXT
                 )
             """)
@@ -52,10 +53,27 @@ class PostgresHandler:
             """)
             print("Ensured that the 'sentiment_results' table exists.")
 
-    def fetch_news_headlines(self):
+    def fetch_all_news_headlines(self):
         """Fetch all news headlines from the database."""
         with self.conn.cursor() as cur:
             cur.execute("SELECT title FROM news ORDER BY id;")
+            records = cur.fetchall()
+        return [record[0] for record in records]
+
+    def fetch_news_headlines(self, topic=None, pub_date=None):
+        """Fetch all news headlines from the database, optionally filtering by topic and publication date."""
+        query = "SELECT title FROM news WHERE TRUE"
+        params = []
+
+        if topic:
+            query += " AND LOWER(title) LIKE LOWER(%s)"
+            params.append(f"%{topic}%")
+        if pub_date:
+            query += " AND DATE(pub_date) = %s"  # Assuming pub_date is of type 'date' or 'timestamp'
+            params.append(pub_date)
+
+        with self.conn.cursor() as cur:
+            cur.execute(query, params)
             records = cur.fetchall()
         return [record[0] for record in records]
 
@@ -115,6 +133,7 @@ class PostgresHandler:
         if self.conn:
             self.conn.close()
             print("Closed the database connection.")
+
 
 # Simple test routine to verify the connection
 if __name__ == "__main__":
