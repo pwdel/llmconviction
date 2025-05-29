@@ -1,8 +1,0 @@
-#!/usr/local/bin/python
-
-# activated by a chron job
-# gets today's date
-# grabs today's news
-# runs articleparse to look at and de-duplicate articles, save only today's news in archive
-# runs sentiment on today's news
-# stores sentiment_result for today in archive
